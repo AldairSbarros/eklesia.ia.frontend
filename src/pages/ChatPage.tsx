@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { api } from '../services/api';
 import {
   ChatPageContainer,
   ChatCard,
@@ -19,11 +20,21 @@ export default function ChatPage() {
 
   async function handleEnviar() {
     setLoading(true);
-    // Aqui você pode integrar com a API de chat IA
-    setTimeout(() => {
-      setResposta('Resposta da IA para: ' + mensagem);
-      setLoading(false);
-    }, 1500);
+    try {
+      const resp = await api.post('/perguntar', { pergunta: mensagem });
+      // Ajuste conforme o campo retornado pelo backend
+      setResposta(resp.data.resposta || JSON.stringify(resp.data));
+    } catch (err: unknown) {
+      if (typeof err === 'object' && err !== null && 'response' in err) {
+        const errorObj = err as { response?: { data?: { detail?: string } }, message?: string };
+        setResposta('Erro ao consultar IA: ' + (errorObj.response?.data?.detail || errorObj.message));
+      } else if (err instanceof Error) {
+        setResposta('Erro ao consultar IA: ' + err.message);
+      } else {
+        setResposta('Erro ao consultar IA: erro desconhecido');
+      }
+    }
+    setLoading(false);
   }
 
   return (

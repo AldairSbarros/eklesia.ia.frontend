@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { api } from '../services/api';
 import { BiblePageContainer, BibleCard, BibleTitle, BibleForm, BibleInput, BibleButton, BibleResult } from './BiblePage.styles';
 
 export default function BiblePage() {
@@ -8,11 +9,20 @@ export default function BiblePage() {
 
   async function handleSearch() {
     setLoading(true);
-    // Aqui você pode integrar com a API de busca bíblica
-    setTimeout(() => {
-      setResult('Exemplo de resultado para: ' + query);
-      setLoading(false);
-    }, 1200);
+    try {
+      const resp = await api.post('/buscar-biblia', { query });
+      setResult(resp.data.resultado || resp.data.texto || JSON.stringify(resp.data));
+    } catch (err: unknown) {
+      let errorMessage = 'Erro ao buscar na Bíblia: ';
+      if (typeof err === 'object' && err !== null) {
+        const errorObj = err as { response?: { data?: { detail?: string } }, message?: string };
+        errorMessage += errorObj.response?.data?.detail || errorObj.message || JSON.stringify(errorObj);
+      } else {
+        errorMessage += String(err);
+      }
+      setResult(errorMessage);
+    }
+    setLoading(false);
   }
 
   return (

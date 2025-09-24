@@ -1,5 +1,6 @@
 
 import { useState } from 'react';
+import { api } from '../services/api';
 import {
   SermoesPageContainer,
   SermoesCard,
@@ -22,11 +23,18 @@ export default function SermoesPage() {
 
   async function handleGerar() {
     setLoading(true);
-    // Aqui você pode integrar com a API de geração de sermão
-    setTimeout(() => {
-      setResultado('Sermão gerado para o tema: ' + tema + ' (' + tipo + ')');
-      setLoading(false);
-    }, 1800);
+    try {
+      const resp = await api.post('/gerar-sermao', { tipo, tema });
+      setResultado(resp.data.resultado || resp.data.sermao || JSON.stringify(resp.data));
+    } catch (err: unknown) {
+      if (typeof err === 'object' && err !== null && 'response' in err) {
+        const response = (err as { response?: { data?: { detail?: string } } }).response;
+        setResultado('Erro ao gerar sermão: ' + (response?.data?.detail || ((err as unknown) as Error).message));
+      } else {
+        setResultado('Erro ao gerar sermão: ' + (err as Error).message);
+      }
+    }
+    setLoading(false);
   }
 
   return (

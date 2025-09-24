@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 export const api = axios.create({
-  baseURL: 'http://localhost:8000', // Altere para a URL do seu backend FastAPI
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000', // Usa variável de ambiente em produção
 });
 
 export function setAuthToken(token: string | null) {
